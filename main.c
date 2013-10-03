@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential', 's'  or 'parallel', 'p'  \n");
   prog = stdin;
 
-
-  const char* delim = "\n\t ;";
+  const char * delim1 = ";"; //For each command
+  const char* delim2 = "\n\t ";// For each component
   int mode = 0; // default to sequential 
    
   char* new_line = (char * ) malloc(sizeof(char)*1024);
@@ -25,39 +25,40 @@ int main(int argc, char **argv) {
 
   while (1) //We always read in a new line.
     {
+      char * comment = strchr(new_parse, '#'); //deal with comment on line
+      if(comment != NULL){
+	comment = '\0';
+      } ;
+
       char * tmp= NULL;
-      char * new_parse = strtok_r( new_line, delim, &tmp);
+      char * new_parse = strtok_r( new_line, delim1, &tmp);
 
       while(1){ //always parse. I guess breaks will happen manually so far
 	// as new job come in, check the parse for exit or mode
 
-
-	if(strcmp(new_parse, "mode") == 0)
+	char* tmp2 = NULL;
+	char * new_parse_2 =strtok_r(new_parse, delim2, &tmp2); 
+	if(strcmp(new_parse_2, "mode") == 0)
 	  {
-	    new_parse = strtok_r( new_line, delim, &tmp);
-	    if(new_parse[0]=='s'){
-	      mode = 0;
-	      new_parse = strtok_r( new_line, delim, &tmp);
+	    new_parse_2 = strtok_r( new_line, delim2, &tmp2);
+	    if(new_parse_2[0]=='p'){
+	      mode = 1;
+	      new_parse = strtok_r( new_line, delim1, &tmp);
 	    };
 	    else(){
-		mode = 1;
-		new_parse = strtok_r( new_line, delim, &tmp);
+		mode = 0;
+		new_parse = strtok_r( new_line, delim1, &tmp);
 	      };
 	    continue; // run while loop again
 	  };
 
 
-	if(strcmp(new_parse,"exit") == 0){
-	    // DOSTUFF and break;break;
+	if(strcmp(new_parse_2,"exit") == 0){
+           // DOSTUFF and break;break;
 	  };
 
 
       }
-      if(strcmp(new_parse) == 0 ){
-	//here, finish all jobs, and then exit program
-
-      };
-
     }
 
 
