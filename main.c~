@@ -13,13 +13,8 @@
 
 
 int main(int argc, char **argv) {
-  printf("Changes made");
-
-
 
     printf("main.c, so lonely.  no code here yet :-(\n");
-
-
 
     return 0;
 }
