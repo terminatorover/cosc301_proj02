@@ -13,9 +13,29 @@
 
 
 int main(int argc, char **argv) {
+  printf("\n This is a prompt. Type 'exit' to get out! \n");
+  prog = stdin;
 
-    printf("main.c, so lonely.  no code here yet :-(\n");
 
+  const char* delim = "\n\t ";
+    
+  char* new_line = (char * ) malloc(sizeof(char)*1024);
+  new_line =  fgets( new_line, 1024 ,  prog);
+
+  while (1) //We always read in a new line.
+    {
+      char * tmp= NULL;
+      char * new_parse = strtok_r( new_line, delim, &tmp);
+      while(strcmp(new_parse,"exit") != 0){
+
+}
+
+    }
+
+
+  fclose(prog);
+
+  printf("\n You entered the word 'exit'. Peace out, yo!")
     return 0;
 }
 
