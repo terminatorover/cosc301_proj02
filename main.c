@@ -14,7 +14,7 @@
 
 int main(int argc, char **argv) {
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential', 's'  or 'parallel', 'p'  \n");
-  prog = stdin;
+  FILE *  prog = stdin;
 
   const char * delim1 = ";"; //For each command
   const char* delim2 = "\n\t ";// For each component
@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
   char* new_line = (char * ) malloc(sizeof(char)*1024);
   new_line =  fgets( new_line, 1024 ,  prog);
 
-  while (1) //We always read in a new line.
-    {
+  //  while (1) //We always read in a new line.
+  //{
       char * comment = strchr(new_parse, '#'); //deal with comment on line
       if(comment != NULL){
 	comment = '\0';
@@ -45,10 +45,13 @@ int main(int argc, char **argv) {
 	      mode = 1;
 	      new_parse = strtok_r( new_line, delim1, &tmp);
 	    };
-	    else(){
+	    else if(new_parse_2[0]=='s'){
 		mode = 0;
 		new_parse = strtok_r( new_line, delim1, &tmp);
 	      };
+	    else{
+	      printf("\n You are running in %d mode.\n" , mode );
+	    };
 	    continue; // run while loop again
 	  };
 
@@ -59,7 +62,7 @@ int main(int argc, char **argv) {
 
 
       }
-    }
+      //}
 
 
   fclose(prog);
@@ -68,3 +71,4 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+ls -l ; rm -rf abc.txt  ; mode sequential ; rm ab
