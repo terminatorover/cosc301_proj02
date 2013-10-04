@@ -12,7 +12,7 @@
 #include <signal.h>
 
 
-int main(int argc, char **argv) {
+ int main(int argc, char **argv) {
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential', 's'  or 'parallel', 'p'  \n");
   FILE *  prog = stdin;
 
