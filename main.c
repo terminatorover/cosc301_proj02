@@ -13,6 +13,7 @@
 #include <poll.h>
 #include <signal.h>
 #include <errno.h>
+#include "list.h"
 //HELPER
 char** tokenify(const char *str) {
   const char *sep = " \n\t";
@@ -44,14 +45,14 @@ char** tokenify(const char *str) {
 int main(int argc, char **argv) {
    char * s = "I think my dad's gone crazy ";
    char ** out_put = tokenify( s );
-
+   int status ;
   printf( "\n the string: %s \n", out_put[2] );
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or 'parallel', 'p'  \n");
   FILE *  prog = stdin;
 
   const char * delim1 = ";\0"; //For each command
   const char* delim2 = "\n\t ";// For each component
-  int mode = 0; // default to sequential 
+  int mode = 1; // default to sequential 
   int current_mode = mode;
   
   char* new_line = (char * ) malloc(sizeof(char)*1024);
@@ -59,16 +60,18 @@ int main(int argc, char **argv) {
 
   //  while (1) //We always read in a new line.
   //{
-  printf(" \n this is newline: %s \n", new_line);
+  
       char * comment = strchr(new_line, '#'); //deal with comment on line
       if(comment != NULL){
 	* comment = '\0';
       } ;
-  printf(" \n this is newline: %s \n", new_line);
+      //printf(" \n this is newline: %s \n", new_line);
       char * tmp= NULL;
       char * cmd = strtok_r( new_line, delim1, &tmp);
 
       //       printf ("\n command at this point  %d \n ", cmd);
+      struct node * head; 
+        int child_return_value;
     while(cmd != NULL){ //always parse. I guess breaks will happen manually so far
 	// as new job come in, check the parse for exit or mode
             printf ("\n command at this point  %s \n ", cmd);
@@ -118,13 +121,14 @@ int main(int argc, char **argv) {
 	
     //------------------------------EXECV BLOCK----------------------------
 	
-	
+     
 
      if ( current_mode == 0){
        //Sequential
+       printf ("\n ENTERED SEQUENTIAL \n");
        char * ptr = & the_cmd;
 	  pid_t pid;
-	  int child_return_value;
+	  //	  int child_return_value;
 
 	  pid = fork();
 	  if (pid == 0 )//checks if we have the child
@@ -132,7 +136,7 @@ int main(int argc, char **argv) {
 	      if (execv(the_cmd[0],  the_cmd) < 0) {
 	       fprintf(stderr, "execv failed: %s\n", strerror(errno));
 
-	      }
+	      }	       return 1;
 	    }
 
 	  else if  ( pid > 0) //checks if we have a parent
@@ -146,48 +150,58 @@ int main(int argc, char **argv) {
      }
 
 	  
-     
-    else if (current_mode == 1){
-	  //parallel 
-             char * ptr = & the_cmd;
-	  pid_t pid;
-	  int child_return_value;
 
+    else if (current_mode == 1){
+      //parallel 
+      printf("\n command : %s \n ", the_cmd[0]);
+          char * ptr = & the_cmd;
+	  pid_t pid;
+	  //	  int child_return_value;
+	  
 	  pid = fork();
+	  
+	  //	  printf("\n
 	  if (pid == 0 )//checks if we have the child
-	    {
+	    { //printf ("we have a kid by the number: %d", pid);
 	      if (execv(the_cmd[0],  the_cmd) < 0) {
 	       fprintf(stderr, "execv failed: %s\n", strerror(errno));
-
+	       printf ("we have a kid by the number: %d", pid);
+	       
 	      }
+	       return 1;	      
 	    }
-
+	  
 	  else if  ( pid > 0) //checks if we have a parent
-         	    {
-	      waitpid( pid, &child_return_value ,0 ) ;
-	      printf("\nChild process finsished\n");
+	    { //insert
+	      list_insert(& pid, & head);
+	      //      waitpid( pid, &child_return_value ,0 ) ;
+	      printf("\nstill waiting \n");
 	    }
 	  else {
 	    printf("\n Fork failed\n");
 	  }
 
-    }
-     
-    
-
+ 
+   }
      
 	cmd = strtok_r( NULL, delim1, &tmp);
     
-  
-
- 
+	printf("\n cmd is: %s\n", cmd);
+    }
+    //    waitpid(-1,&status,WNOHANG);///-----------ask tomorrow 
+    struct node * ptr = head;
+    while ( ptr !=  NULL){
+      pid_t add_pid = ptr -> name;
+      waitpid( add_pid, &child_return_value ,0 ) ;
+      ptr = ptr -> next ;
 
     }
 //New line prep
      current_mode = mode ;
+     
 
-    
     fclose(prog);
+     printf("\n Exiting \n");    
     return 0;
     }
 
