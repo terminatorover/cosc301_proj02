@@ -13,7 +13,35 @@
 #include <poll.h>
 #include <signal.h>
 #include <errno.h>
-#include "list.h"
+//#include "list.h"
+
+//LINKED LIST HELP 
+
+
+struct node {
+  pid_t name;
+  struct node *next;
+};
+
+void list_insert( pid_t *name, struct node **head) {
+  struct node *newnode = malloc(sizeof(struct node));
+  newnode->name = * name;
+
+  newnode->next = *head;
+  *head = newnode;
+}
+
+void list_clear(struct node *list) {
+  while (list != NULL) {
+    struct node *tmp = list;
+    list = list->next;
+    free(tmp);
+  }
+}
+
+
+
+
 //HELPER
 char** tokenify(const char *str) {
   const char *sep = " \n\t";
@@ -50,7 +78,7 @@ int main(int argc, char **argv) {
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or 'parallel', 'p'  \n");
   FILE *  prog = stdin;
 
-  const char * delim1 = ";\0"; //For each command
+  const char * delim1 = ";"; //For each command
   const char* delim2 = "\n\t ";// For each component
   int mode = 1; // default to sequential 
   int current_mode = mode;
@@ -60,31 +88,50 @@ int main(int argc, char **argv) {
 
   //  while (1) //We always read in a new line.
   //{
-  
+  printf ("\n before statemnt : %s\n", new_line);
       char * comment = strchr(new_line, '#'); //deal with comment on line
       if(comment != NULL){
 	* comment = '\0';
       } ;
-      //printf(" \n this is newline: %s \n", new_line);
-      char * tmp= NULL;
-      char * cmd = strtok_r( new_line, delim1, &tmp);
-
+      
+      
       //       printf ("\n command at this point  %d \n ", cmd);
       struct node * head; 
-        int child_return_value;
+      int child_return_value;
+      char * tmp  = NULL;
+      char* cmd = strtok_r( new_line, delim1, &tmp);
+
     while(cmd != NULL){ //always parse. I guess breaks will happen manually so far
 	// as new job come in, check the parse for exit or mode
             printf ("\n command at this point  %s \n ", cmd);
 	char* tmp2 = NULL;
-       char ** the_cmd = tokenify ( cmd );
-       
+	/*
+// This block makes the space before the pound go away but this 
+//	   messes up our sleep because it cuts off the last argument (aka the numbe//r)
+	  printf("\ntest command: %s \n", cmd);
+	
+	if(strtok_r( cmd, delim2, &tmp2) == NULL){ 
+	  printf("\n command is %s, but we expect NULL\n", cmd);
+	  cmd= strtok_r(new_line,delim1, &tmp);
+
+	  continue;
+	}
+		printf("\ntest command: %s \n", cmd);
+		//*/
+	char ** the_cmd = tokenify ( cmd );
+
        //       printf("\n indexing ??? maybe  %s \n", the_cmd[1]);
-       char * my_cmd = *the_cmd ;
+       //  char * my_cmd = *the_cmd ;
 
 	char * cmd_part =strtok_r(cmd, delim2, &tmp2); //Getting the command
 
+	if(cmd_part == NULL){ //cmd is only whitespace
+	  cmd = NULL;
+	  continue;
+		
+	}
 
-	if(strcmp(cmd_part, "mode") == 0)
+	 if(strcmp(cmd_part, "mode") == 0)
 	  {  printf("\n ENTERED HELL \n");
 	    cmd_part = strtok_r( NULL, delim2, &tmp2);
 	    if ( cmd_part == NULL ){
@@ -105,7 +152,7 @@ int main(int argc, char **argv) {
               cmd = strtok_r( NULL, delim1, &tmp);
 	    }
 	  }
-	    //    continue; // run while loop again
+	//continue; // run while loop again
 	  
 	//shouldn't we at some point change the value of current_mode
 
@@ -143,7 +190,7 @@ int main(int argc, char **argv) {
          	    {
 	      waitpid( pid, &child_return_value ,0 ) ;
 	      printf("\nChild process finsished\n");
-	    }
+	    } 
 	  else {
 	    printf("\n Fork failed\n");
 	  }
@@ -153,7 +200,8 @@ int main(int argc, char **argv) {
 
     else if (current_mode == 1){
       //parallel 
-      printf("\n command : %s \n ", the_cmd[0]);
+      printf("\n the first part of the command is : %s \n ", the_cmd[0]);
+        
           char * ptr = & the_cmd;
 	  pid_t pid;
 	  //	  int child_return_value;
