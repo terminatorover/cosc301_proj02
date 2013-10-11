@@ -1,5 +1,4 @@
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,7 +23,7 @@ struct node {
 };
 
 void list_insert( pid_t *name, struct node **head) {
-  struct node *newnode = malloc(sizeof(struct node));
+  struct node *newnode =(struct node *)  malloc(sizeof(struct node));
   newnode->name = * name;
 
   newnode->next = *head;
@@ -32,10 +31,11 @@ void list_insert( pid_t *name, struct node **head) {
 }
 
 void list_clear(struct node *list) {
+  struct node *tmp=NULL;  
   while (list != NULL) {
-    struct node *tmp = list;
-    list = list->next;
-    free(tmp);
+    tmp = list->next;
+    free(list);
+    list = tmp;
   }
 }
 
@@ -68,6 +68,17 @@ char** tokenify(const char *str) {
   
 }
 
+void freeArr(char** array){
+  int x = 0;
+  char* tmp = NULL;
+  while (array[x] != NULL){
+    tmp = array[x];
+    free(tmp);
+    x++;
+  }
+  free(array[x]);
+  free(array);
+}
 
 
 int main(int argc, char **argv) {
@@ -75,20 +86,23 @@ int main(int argc, char **argv) {
    char ** out_put = tokenify( s );
    int status ;
   printf( "\n the string: %s \n", out_put[2] );
-  printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or 'parallel', 'p'  \n");
+  printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or   'parallel', 'p'  \n");
   FILE *  prog = stdin;
 
   const char * delim1 = ";"; //For each command
   const char* delim2 = "\n\t ";// For each component
-  int mode = 1; // default to sequential 
+  int mode = 0; // default to sequential 
   int current_mode = mode;
+  int enter = 1;
   
   char* new_line = (char * ) malloc(sizeof(char)*1024);
   new_line =  fgets( new_line, 1024 ,  prog);
 
-  //  while (1) //We always read in a new line.
-  //{
-  printf ("\n before statemnt : %s\n", new_line);
+  //while (1) //We always read in a new line.
+  while(enter)
+
+    {
+
       char * comment = strchr(new_line, '#'); //deal with comment on line
       if(comment != NULL){
 	* comment = '\0';
@@ -96,33 +110,24 @@ int main(int argc, char **argv) {
       
       
       //       printf ("\n command at this point  %d \n ", cmd);
-      struct node * head; 
+      struct node * head = NULL ; 
       int child_return_value;
       char * tmp  = NULL;
       char* cmd = strtok_r( new_line, delim1, &tmp);
 
-    while(cmd != NULL){ //always parse. I guess breaks will happen manually so far
+
+      while(cmd != NULL){
 	// as new job come in, check the parse for exit or mode
-            printf ("\n command at this point  %s \n ", cmd);
+
 	char* tmp2 = NULL;
 	/*
 // This block makes the space before the pound go away but this 
 //	   messes up our sleep because it cuts off the last argument (aka the numbe//r)
 	  printf("\ntest command: %s \n", cmd);
 	
-	if(strtok_r( cmd, delim2, &tmp2) == NULL){ 
-	  printf("\n command is %s, but we expect NULL\n", cmd);
-	  cmd= strtok_r(new_line,delim1, &tmp);
-
-	  continue;
-	}
-		printf("\ntest command: %s \n", cmd);
-		//*/
+	//*/
+	
 	char ** the_cmd = tokenify ( cmd );
-
-       //       printf("\n indexing ??? maybe  %s \n", the_cmd[1]);
-       //  char * my_cmd = *the_cmd ;
-
 	char * cmd_part =strtok_r(cmd, delim2, &tmp2); //Getting the command
 
 	if(cmd_part == NULL){ //cmd is only whitespace
@@ -132,11 +137,13 @@ int main(int argc, char **argv) {
 	}
 
 	 if(strcmp(cmd_part, "mode") == 0)
-	  {  printf("\n ENTERED HELL \n");
+	  {  printf("\n ENTERED MODE \n");
 	    cmd_part = strtok_r( NULL, delim2, &tmp2);
 	    if ( cmd_part == NULL ){
 	        cmd = strtok_r( NULL, delim1, &tmp);
-	        printf("\n You are running in %d mode.\n" , mode );
+		if( current_mode == 1) {printf("\n You are running in Parallel mode \n");}
+		else{ printf("\n You are running in Sequential mode \n");}
+
 	    }
 	    else if(cmd_part[0]=='p'){
 	      mode = 1;
@@ -151,18 +158,15 @@ int main(int argc, char **argv) {
 	      printf("\n You are running in %d mode.\n" , mode );
               cmd = strtok_r( NULL, delim1, &tmp);
 	    }
+	    continue;
 	  }
-	//continue; // run while loop again
-	  
-	//shouldn't we at some point change the value of current_mode
-
-	//	 printf("\nchanging ? %s \n", cmd);
 
         //EXIT FORMATING QUEUE COMPLETIONS 
 
 	if(strcmp(cmd_part,"exit") == 0){
-           // DOSTUFF and break;break;
-	  
+	  enter = 0;
+	  cmd = strtok_r(NULL,delim1, &tmp);
+	  continue;
 	  }
 	
 	
@@ -200,7 +204,7 @@ int main(int argc, char **argv) {
 
     else if (current_mode == 1){
       //parallel 
-      printf("\n the first part of the command is : %s \n ", the_cmd[0]);
+
         
           char * ptr = & the_cmd;
 	  pid_t pid;
@@ -213,45 +217,50 @@ int main(int argc, char **argv) {
 	    { //printf ("we have a kid by the number: %d", pid);
 	      if (execv(the_cmd[0],  the_cmd) < 0) {
 	       fprintf(stderr, "execv failed: %s\n", strerror(errno));
-	       printf ("we have a kid by the number: %d", pid);
+	       
 	       
 	      }
 	       return 1;	      
 	    }
 	  
 	  else if  ( pid > 0) //checks if we have a parent
-	    { //insert
+	    { 
 	      list_insert(& pid, & head);
 	      //      waitpid( pid, &child_return_value ,0 ) ;
-	      printf("\nstill waiting \n");
 	    }
 	  else {
 	    printf("\n Fork failed\n");
 	  }
 
  
+     }
+     freeArr(the_cmd); 
+     cmd = strtok_r( NULL, delim1, &tmp);
    }
-     
-	cmd = strtok_r( NULL, delim1, &tmp);
-    
-	printf("\n cmd is: %s\n", cmd);
-    }
+
     //    waitpid(-1,&status,WNOHANG);///-----------ask tomorrow 
+    //----------Waiting for our children to die -------------
     struct node * ptr = head;
     while ( ptr !=  NULL){
       pid_t add_pid = ptr -> name;
       waitpid( add_pid, &child_return_value ,0 ) ;
       ptr = ptr -> next ;
 
-    }
+ }
+
 //New line prep
      current_mode = mode ;
-     
-
-    fclose(prog);
-     printf("\n Exiting \n");    
-    return 0;
+     if(enter){
+       new_line =  fgets( new_line, 1024 ,  prog);
+     }
+       list_clear( head);
     }
+  
+    fclose(prog);
+    free(new_line);
+    printf("\n Exiting \n");    
+    return 0;
+}
 
 
 
