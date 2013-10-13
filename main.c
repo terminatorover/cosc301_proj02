@@ -21,7 +21,7 @@ struct node {
   pid_t name;
   char * cmd ; 
   struct node *next;
-  
+  int state;
 };
 
 
@@ -238,7 +238,18 @@ int main(int argc, char **argv) {
 	  cmd = strtok_r(NULL,delim1, &tmp);
 	  continue;
 	  }
-	
+	//++++++++++++++++++++++++++++++JOBS BLOCK++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+
+
+
+
+	//++++++++++++++++++++++++++++++JOBS BLOCK++++++++++++++++++++++++++++++++++++++++++
 	
     //------------------------------EXECV BLOCK----------------------------
 	
@@ -305,48 +316,53 @@ int main(int argc, char **argv) {
      freeArr(the_cmd);
      cmd = strtok_r( NULL, delim1, &tmp);
       }
+//*******************************CHECKS FOR PROCESSES COMPLETED**********************8
       int rv = poll(&pfd, 1, 1000);
-      if ( current_mode ==1 ){
+
       if ( rv == 0)
 	{ printf ("\n we just issued a stop 1");
-	    itr = head;
+	    struct node * ite = head;
 	    //	    printf ("\n right after itr = head\n");
-           while ( itr !=  NULL){
+           while ( ite !=  NULL){
 	     //	     printf("\n just enterd the while loop \n");
-	     pid_t add_pid = itr -> name;
+	     pid_t add_pid = ite -> name;
 	     //	     printf("the name of the kid in the loop : %d", add_pid);
 	     if (waitpid( add_pid, &child_return_value ,WNOHANG ) )
 	       {//printf("\n Process %d (%s) \n", add_pid);
 		 print_selected(add_pid, head);
 	 	 kids_name = add_pid; 
-     		 itr = itr -> next ;
+
 		 list_delete( kids_name, & head);//remove the node that has the pid of the child that just compelted 
 
 
-	       }}}
+	       }  ite = ite -> next ;
+	   }}
       else if (rv >  0)
 	{//printf ("\n we just issued a stop 2 ");
-	  itr = head;
-           while ( itr !=  NULL){
-	     pid_t add_pid = itr -> name;
+	  struct node *ite = head;
+           while ( ite !=  NULL){
+	     pid_t add_pid = ite -> name;
 	     
 	     if (waitpid( add_pid, &child_return_value ,WNOHANG ) )
 	       {printf("\n process pid: %d \n", add_pid);
 	 	 kids_name = add_pid; 
-     		 itr = itr -> next ;
+		 ite = ite -> next ;
       	 	list_delete( kids_name, & head);//remove the node that has the pid of the child that just compelted 
 
 	
 	       }
 	       else {
-     		 itr = itr -> next ;
+		 printf("\n MEANS CHILD ISN'T DONE \n");
+
 	          }
 
 	   }}
 
       else {printf("\n NOT WORKING \n");}
-      }
-    //----------Waiting for our children to die -------------
+    
+
+//*******************************CHECKS FOR PROCESSES COMPLETED**********************8
+
 
 
 //New line prep
@@ -355,18 +371,18 @@ int main(int argc, char **argv) {
        new_line =  fgets( new_line, 1024 ,  prog);
      }
      //+++++++++++++++++++++checking if there are children finished +++++++++++++++++++++++++++
-
     }
-      itr = head;
-      while ( itr !=  NULL){
-	pid_t add_pid = itr -> name;
+
+  struct node * ite = head;
+      while ( ite !=  NULL){
+	pid_t add_pid = ite -> name;
 	waitpid( add_pid, &child_return_value ,0 ) ;
 	
 	//process just completed 
-        itr = itr -> next ;// ---advance pointer to the next node 
+        ite = ite -> next ;// ---advance pointer to the next node 
 
 
-        }
+      }
     list_clear( head);
   
 
@@ -375,7 +391,7 @@ int main(int argc, char **argv) {
     free(new_line);
     printf("\n Exiting \n");    
     return 0;
-	}
 
 
 
+}
