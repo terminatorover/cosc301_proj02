@@ -30,7 +30,7 @@ void list_insert(char * str, pid_t  name, struct node ** head){
   newnode -> name = name ;
   newnode -> cmd = str; 
   newnode -> next = NULL;
-  
+  newnode -> state = 1;
   struct node * tmp = * head ;
 
   if ( tmp == NULL)
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
 
       while(cmd != NULL){
 	// as new job come in, check the parse for exit or mode	
-	printf("\n THE CMD IS--------------> %s \n", cmd );
+
 	char* tmp2 = NULL;
 	char * tmp3 = NULL;
 	/*
@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
 	
 	char ** the_cmd = tokenify ( cmd );
 	char * cmd_part =strtok_r(cmd, delim2, &tmp2); //Getting the command
-	printf("\n THE CMD IS %s++++++++++After firs strtok_r \n", cmd );
+ 
 	if(cmd_part == NULL){ //cmd is only whitespace
 	  cmd = NULL;
 	  continue;
@@ -272,11 +272,12 @@ int main(int argc, char **argv) {
 	
 	//        cmd_part = strtok_r (cmd, delim2, &tmp3 );
 	if (strcmp(cmd_part,"pause")==0){
-	  cmd_part = strtok_r (NULL, delim2, &tmp3 );
+	  cmd_part = strtok_r (NULL, delim2, &tmp2);
 	  printf ("\n i expect a pid : %s\n", cmd_part);
 	  if ( cmd_part != NULL){
 	    printf("\nTo be expected \n");
-	  int pid_for_pause = atoi(cmd_part);
+	    const char * input_cmd_part = (const char *) cmd_part;
+	  int pid_for_pause = atoi(input_cmd_part);
 	  kill(pid_for_pause, SIGSTOP);
 	  pause_and_resume_selected ( pid_for_pause, head, 0);
 	  for_exec = 0; }
@@ -285,11 +286,13 @@ int main(int argc, char **argv) {
 	//**************************CALLING RESUME
         
 	if (strcmp(cmd_part,"resume")==0){
-	  cmd_part = strtok_r (NULL, delim2, &tmp3 );
+	  cmd_part = strtok_r (NULL, delim2, &tmp2 );
 	  if ( cmd_part != NULL){
-	  int pid_for_pause = atoi(cmd_part);
+	    const char * input_cmd_part = (const char *) cmd_part;
+	  int pid_for_pause = atoi(input_cmd_part);
+
 	  kill(pid_for_pause, SIGCONT);
-	  pause_and_resume_selected ( pid_for_pause, head, 0);
+	  pause_and_resume_selected ( pid_for_pause, head, 1);
 	  for_exec = 0; }
 	  else {printf("\n Please enter the name of the process. Eg, resume 234\n");}
 	}
