@@ -75,7 +75,7 @@ void list_clear(struct node *list) {
 void list_print (struct node *head){
   struct node * itr = head ;
   while ( itr != NULL){
-    printf("\n name is : %d \n ", itr -> name );
+    printf("\n Process ID: %d , The command: %s, State:%d \n ", itr -> name , itr-> cmd, itr-> state );
     itr = itr -> next ;
     printf("\n Inside loop \n ");
   }
@@ -96,8 +96,28 @@ void print_selected ( pid_t the_name, struct node * head){
     printf ("\n Process %d (%s) completed \n", the_name, tmp -> cmd );
 
   }
-}
+}  
 
+void pause_and_resume_selected ( pid_t the_name, struct node * head, int check){
+  struct node * tmp = head;
+  while (tmp !=NULL) {
+    while (tmp-> name != the_name )
+      {
+	tmp = tmp -> next ;
+
+      }if (tmp -> name == the_name ){break ;}
+
+  }
+  if(tmp ==NULL ){}
+  else {
+    
+    if (check ){
+      tmp -> state = 1 ;
+      printf ("\n Proces %d  has been resumed \n", tmp -> name );} 
+    else{ tmp -> state = 0; 
+      printf ("\n Proces %d  has been paused \n", tmp ->name);} 
+    }
+}
 
 
 
@@ -164,7 +184,7 @@ int main(int argc, char **argv) {
   struct node*   itr = NULL ;  
   const pid_t * kids_name = NULL; 
   //  char * ptr = NULL; **************************************Comment out ptr
-
+  int for_exec = 1; 
   char* new_line = (char * ) malloc(sizeof(char)*1024);
   new_line =  fgets( new_line, 1024 ,  prog);
   
@@ -188,8 +208,9 @@ int main(int argc, char **argv) {
 
       while(cmd != NULL){
 	// as new job come in, check the parse for exit or mode
-
+	
 	char* tmp2 = NULL;
+	char * tmp3 = NULL;
 	/*
 // This block makes the space before the pound go away but this 
 //	   messes up our sleep because it cuts off the last argument (aka the numbe//r)
@@ -239,10 +260,42 @@ int main(int argc, char **argv) {
 	  continue;
 	  }
 	//++++++++++++++++++++++++++++++JOBS BLOCK++++++++++++++++++++++++++++++++++++++++++
+	//************************CALLING JOBS -Not Steve
+	if(strcmp(cmd, "jobs") == 0){
+
+	list_print( head);
+	}
+
+	//**************************CALLING PAUSE 
+	char * jobs_cmd_part = strtok_r (cmd, delim2, &tmp3 );
+
+	//        cmd_part = strtok_r (cmd, delim2, &tmp3 );
+	if (strcmp(jobs_cmd_part,"pause")==0){
+	  jobs_cmd_part = strtok_r (NULL, delim2, &tmp3 );
+	  if ( jobs_cmd_part != NULL){
+	    printf("\nTo be expected \n");
+	  int pid_for_pause = atoi(jobs_cmd_part);
+	  kill(pid_for_pause, SIGSTOP);
+	  pause_and_resume_selected ( pid_for_pause, head, 0);
+	  for_exec = 0; }
+	  else {printf("\n Please enter the name of the process. Eg, pause 234\n");}
+	}  
+	//**************************CALLING RESUME
+        
+	if (strcmp(cmd_part,"resume")==0){
+	  cmd_part = strtok_r (NULL, delim2, &tmp3 );
+	  if ( cmd_part != NULL){
+	  int pid_for_pause = atoi(cmd_part);
+	  kill(pid_for_pause, SIGSTOP);
+	  pause_and_resume_selected ( pid_for_pause, head, 0);
+	  for_exec = 0; }
+	  else {printf("\n Please enter the name of the process. Eg, resume 234\n");}
+	}
 
 
 
-
+	
+	
 
 
 
@@ -255,7 +308,7 @@ int main(int argc, char **argv) {
 	
      
 
-     if ( current_mode == 0){
+     if ( current_mode == 0 && for_exec == 1){
        //Sequential
        printf ("\n ENTERED SEQUENTIAL \n");
        //       ptr = & the_cmd;***********************************comment out ptr 
@@ -283,7 +336,7 @@ int main(int argc, char **argv) {
 
 	  
 
-    else if (current_mode == 1){
+     if ( current_mode == 1 && for_exec == 1){
       //parallel 
 
         
@@ -320,7 +373,7 @@ int main(int argc, char **argv) {
       int rv = poll(&pfd, 1, 1000);
 
       if ( rv == 0)
-	{ printf ("\n we just issued a stop 1");
+	{// printf ("\n we just issued a stop 1");
 	    struct node * ite = head;
 	    //	    printf ("\n right after itr = head\n");
            while ( ite !=  NULL){
