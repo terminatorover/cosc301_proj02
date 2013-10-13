@@ -19,15 +19,18 @@
 
 struct node {
   pid_t name;
+  char * cmd ; 
   struct node *next;
   
 };
 
 
-void list_insert(pid_t  name, struct node ** head){
+void list_insert(char * str, pid_t  name, struct node ** head){
   struct node * newnode = (struct node * ) malloc (sizeof( struct node));
   newnode -> name = name ;
+  newnode -> cmd = str; 
   newnode -> next = NULL;
+  
   struct node * tmp = * head ;
 
   if ( tmp == NULL)
@@ -77,6 +80,24 @@ void list_print (struct node *head){
     printf("\n Inside loop \n ");
   }
 }
+
+void print_selected ( pid_t the_name, struct node * head){
+  struct node * tmp = head;
+  while (tmp !=NULL) {
+    while (tmp-> name != the_name )
+      {
+	tmp = tmp -> next ;
+
+      }if (tmp -> name == the_name ){break ;}
+
+  }
+  if(tmp ==NULL ){}
+  else {
+    printf ("\n Process %d (%s) completed \n", the_name, tmp -> cmd );
+
+  }
+}
+
 
 
 
@@ -204,7 +225,7 @@ int main(int argc, char **argv) {
 	    }
             else{// shouldn't we display some type of error message. 
 	//the user typed mode and then ???
-	      printf("\n You are running in %d mode.\n" , mode );
+	      printf("\n Enter a valid command. Did you mean mode ? \n" );
               cmd = strtok_r( NULL, delim1, &tmp);
 	    }
 	    continue;
@@ -272,7 +293,7 @@ int main(int argc, char **argv) {
 	  
 	  else if  ( pid > 0) //checks if we have a parent
 	    { 
-	      list_insert( pid, & head);
+	      list_insert(cmd,  pid, & head);
 	      //waitpid( pid, &child_return_value ,0 ) ;
 	    }
 	  else {
@@ -295,7 +316,8 @@ int main(int argc, char **argv) {
 	     pid_t add_pid = itr -> name;
 	     //	     printf("the name of the kid in the loop : %d", add_pid);
 	     if (waitpid( add_pid, &child_return_value ,WNOHANG ) )
-	       {printf("\n process pid: %d \n", add_pid);
+	       {//printf("\n Process %d (%s) \n", add_pid);
+		 print_selected(add_pid, head);
 	 	 kids_name = add_pid; 
      		 itr = itr -> next ;
 		 list_delete( kids_name, & head);//remove the node that has the pid of the child that just compelted 
