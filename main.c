@@ -206,9 +206,10 @@ int main(int argc, char **argv) {
       char* cmd = strtok_r( new_line, delim1, &tmp);
 
 
+
       while(cmd != NULL){
-	// as new job come in, check the parse for exit or mode
-	
+	// as new job come in, check the parse for exit or mode	
+	printf("\n THE CMD IS--------------> %s \n", cmd );
 	char* tmp2 = NULL;
 	char * tmp3 = NULL;
 	/*
@@ -220,7 +221,7 @@ int main(int argc, char **argv) {
 	
 	char ** the_cmd = tokenify ( cmd );
 	char * cmd_part =strtok_r(cmd, delim2, &tmp2); //Getting the command
-
+	printf("\n THE CMD IS %s++++++++++After firs strtok_r \n", cmd );
 	if(cmd_part == NULL){ //cmd is only whitespace
 	  cmd = NULL;
 	  continue;
@@ -265,16 +266,17 @@ int main(int argc, char **argv) {
 
 	list_print( head);
 	}
-
+	printf("\n THE CMD IS %s \n", cmd );
 	//**************************CALLING PAUSE 
-	char * jobs_cmd_part = strtok_r (cmd, delim2, &tmp3 );
 
+	
 	//        cmd_part = strtok_r (cmd, delim2, &tmp3 );
-	if (strcmp(jobs_cmd_part,"pause")==0){
-	  jobs_cmd_part = strtok_r (NULL, delim2, &tmp3 );
-	  if ( jobs_cmd_part != NULL){
+	if (strcmp(cmd_part,"pause")==0){
+	  cmd_part = strtok_r (NULL, delim2, &tmp3 );
+	  printf ("\n i expect a pid : %s\n", cmd_part);
+	  if ( cmd_part != NULL){
 	    printf("\nTo be expected \n");
-	  int pid_for_pause = atoi(jobs_cmd_part);
+	  int pid_for_pause = atoi(cmd_part);
 	  kill(pid_for_pause, SIGSTOP);
 	  pause_and_resume_selected ( pid_for_pause, head, 0);
 	  for_exec = 0; }
@@ -286,7 +288,7 @@ int main(int argc, char **argv) {
 	  cmd_part = strtok_r (NULL, delim2, &tmp3 );
 	  if ( cmd_part != NULL){
 	  int pid_for_pause = atoi(cmd_part);
-	  kill(pid_for_pause, SIGSTOP);
+	  kill(pid_for_pause, SIGCONT);
 	  pause_and_resume_selected ( pid_for_pause, head, 0);
 	  for_exec = 0; }
 	  else {printf("\n Please enter the name of the process. Eg, resume 234\n");}
