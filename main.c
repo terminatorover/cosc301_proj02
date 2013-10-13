@@ -20,14 +20,44 @@
 struct node {
   pid_t name;
   struct node *next;
+  
 };
 
-void list_insert( pid_t *name, struct node **head) {
-  struct node *newnode =(struct node *)  malloc(sizeof(struct node));
-  newnode->name = * name;
 
-  newnode->next = *head;
-  *head = newnode;
+void list_insert(pid_t  name, struct node ** head){
+  struct node * newnode = (struct node * ) malloc (sizeof( struct node));
+  newnode -> name = name ;
+  newnode -> next = NULL;
+  struct node * tmp = * head ;
+
+  if ( tmp == NULL)
+    { newnode -> next = tmp;
+      * head  = newnode ;
+    }
+  else {
+    while ( tmp -> next != NULL){
+      tmp = tmp -> next ;
+    }
+    tmp -> next = newnode ;
+    newnode -> next = NULL;
+  }
+}
+
+void list_delete(pid_t name,  struct node ** head ){
+  struct node * tmp = * head ;
+  //deleting the head node if it happens to match what we want
+  if ( tmp -> name == name ){*head = tmp -> next ;}
+  else {
+    //loop until either you find the name or you're pointing to null
+    while( ( tmp ->next -> name != name ) && (tmp !=NULL)){
+      tmp = tmp -> next ;
+    }
+    if ( tmp == NULL){}//if you're pointing to nothing don't do anything
+    else {//else make the current node point to the second node from it
+      tmp -> next = tmp -> next -> next ;
+    }
+  }
+
 }
 
 void list_clear(struct node *list) {
@@ -38,6 +68,16 @@ void list_clear(struct node *list) {
     list = tmp;
   }
 }
+
+void list_print (struct node *head){
+  struct node * itr = head ;
+  while ( itr != NULL){
+    printf("\n name is : %d \n ", itr -> name );
+    itr = itr -> next ;
+    printf("\n Inside loop \n ");
+  }
+}
+
 
 
 
@@ -94,10 +134,19 @@ int main(int argc, char **argv) {
   int mode = 0; // default to sequential 
   int current_mode = mode;
   int enter = 1;
-  
+  struct node * head = NULL ;
+  int child_return_value;
+  struct pollfd pfd[1];
+  pfd -> fd = 0;
+  pfd -> events = POLLIN;
+  pfd -> revents = 0 ;
+  struct node*   itr = NULL ;  
+  const pid_t * kids_name = NULL; 
+  //  char * ptr = NULL; **************************************Comment out ptr
+
   char* new_line = (char * ) malloc(sizeof(char)*1024);
   new_line =  fgets( new_line, 1024 ,  prog);
-
+  
   //while (1) //We always read in a new line.
   while(enter)
 
@@ -110,8 +159,8 @@ int main(int argc, char **argv) {
       
       
       //       printf ("\n command at this point  %d \n ", cmd);
-      struct node * head = NULL ; 
-      int child_return_value;
+
+
       char * tmp  = NULL;
       char* cmd = strtok_r( new_line, delim1, &tmp);
 
@@ -177,7 +226,7 @@ int main(int argc, char **argv) {
      if ( current_mode == 0){
        //Sequential
        printf ("\n ENTERED SEQUENTIAL \n");
-       char * ptr = & the_cmd;
+       //       ptr = & the_cmd;***********************************comment out ptr 
 	  pid_t pid;
 	  //	  int child_return_value;
 
@@ -193,7 +242,7 @@ int main(int argc, char **argv) {
 	  else if  ( pid > 0) //checks if we have a parent
          	    {
 	      waitpid( pid, &child_return_value ,0 ) ;
-	      printf("\nChild process finsished\n");
+
 	    } 
 	  else {
 	    printf("\n Fork failed\n");
@@ -206,7 +255,7 @@ int main(int argc, char **argv) {
       //parallel 
 
         
-          char * ptr = & the_cmd;
+      //          char * ptr = & the_cmd; ********************************Commment out ptr
 	  pid_t pid;
 	  //	  int child_return_value;
 	  
@@ -217,16 +266,14 @@ int main(int argc, char **argv) {
 	    { //printf ("we have a kid by the number: %d", pid);
 	      if (execv(the_cmd[0],  the_cmd) < 0) {
 	       fprintf(stderr, "execv failed: %s\n", strerror(errno));
-	       
-	       
 	      }
 	       return 1;	      
 	    }
 	  
 	  else if  ( pid > 0) //checks if we have a parent
 	    { 
-	      list_insert(& pid, & head);
-	      //      waitpid( pid, &child_return_value ,0 ) ;
+	      list_insert( pid, & head);
+	      //waitpid( pid, &child_return_value ,0 ) ;
 	    }
 	  else {
 	    printf("\n Fork failed\n");
@@ -234,33 +281,79 @@ int main(int argc, char **argv) {
 
  
      }
-     freeArr(the_cmd); 
+     freeArr(the_cmd);
      cmd = strtok_r( NULL, delim1, &tmp);
-   }
+      }
+      int rv = poll(&pfd, 1, 1000);
+      if ( current_mode ==1 ){
+      if ( rv == 0)
+	{ printf ("\n we just issued a stop 1");
+	    itr = head;
+	    //	    printf ("\n right after itr = head\n");
+           while ( itr !=  NULL){
+	     //	     printf("\n just enterd the while loop \n");
+	     pid_t add_pid = itr -> name;
+	     //	     printf("the name of the kid in the loop : %d", add_pid);
+	     if (waitpid( add_pid, &child_return_value ,WNOHANG ) )
+	       {printf("\n process pid: %d \n", add_pid);
+	 	 kids_name = add_pid; 
+     		 itr = itr -> next ;
+		 list_delete( kids_name, & head);//remove the node that has the pid of the child that just compelted 
 
-    //    waitpid(-1,&status,WNOHANG);///-----------ask tomorrow 
+
+	       }}}
+      else if (rv >  0)
+	{//printf ("\n we just issued a stop 2 ");
+	  itr = head;
+           while ( itr !=  NULL){
+	     pid_t add_pid = itr -> name;
+	     
+	     if (waitpid( add_pid, &child_return_value ,WNOHANG ) )
+	       {printf("\n process pid: %d \n", add_pid);
+	 	 kids_name = add_pid; 
+     		 itr = itr -> next ;
+      	 	list_delete( kids_name, & head);//remove the node that has the pid of the child that just compelted 
+
+	
+	       }
+	       else {
+     		 itr = itr -> next ;
+	          }
+
+	   }}
+
+      else {printf("\n NOT WORKING \n");}
+      }
     //----------Waiting for our children to die -------------
-    struct node * ptr = head;
-    while ( ptr !=  NULL){
-      pid_t add_pid = ptr -> name;
-      waitpid( add_pid, &child_return_value ,0 ) ;
-      ptr = ptr -> next ;
 
- }
 
 //New line prep
      current_mode = mode ;
      if(enter){
        new_line =  fgets( new_line, 1024 ,  prog);
      }
-       list_clear( head);
+     //+++++++++++++++++++++checking if there are children finished +++++++++++++++++++++++++++
+
     }
+      itr = head;
+      while ( itr !=  NULL){
+	pid_t add_pid = itr -> name;
+	waitpid( add_pid, &child_return_value ,0 ) ;
+	
+	//process just completed 
+        itr = itr -> next ;// ---advance pointer to the next node 
+
+
+        }
+    list_clear( head);
+  
+
   
     fclose(prog);
     free(new_line);
     printf("\n Exiting \n");    
     return 0;
-}
+	}
 
 
 
