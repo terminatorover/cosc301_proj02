@@ -264,7 +264,8 @@ int main(int argc, char **argv) {
 	//************************CALLING JOBS -Not Steve
 	if(strcmp(cmd, "jobs") == 0){
 
-	list_print( head);
+	  list_print( head);
+	  for_exec = 0;
 	}
 	printf("\n THE CMD IS %s \n", cmd );
 	//**************************CALLING PAUSE 
@@ -275,7 +276,7 @@ int main(int argc, char **argv) {
 	  cmd_part = strtok_r (NULL, delim2, &tmp2);
 	  printf ("\n i expect a pid : %s\n", cmd_part);
 	  if ( cmd_part != NULL){
-	    printf("\nTo be expected \n");
+
 	    const char * input_cmd_part = (const char *) cmd_part;
 	  int pid_for_pause = atoi(input_cmd_part);
 	  kill(pid_for_pause, SIGSTOP);
@@ -343,7 +344,7 @@ int main(int argc, char **argv) {
 
      if ( current_mode == 1 && for_exec == 1){
       //parallel 
-
+       printf("OH NO YOU DIDN'");
         
       //          char * ptr = & the_cmd; ********************************Commment out ptr
 	  pid_t pid;
