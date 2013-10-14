@@ -30,7 +30,7 @@ void list_insert(char * str, pid_t  name, struct node ** head){
   newnode -> name = name ; 
 
   newnode -> cmd = str; 
-
+  printf("\n the path in the new node is: %s \n", newnode-> cmd);
   newnode -> next = NULL;
   
   newnode -> state = 1;
@@ -349,7 +349,7 @@ int main(int argc, char **argv) {
 	}  
 	//**************************CALLING RESUME
         
-	if (strcmp(cmd_part,"resume")==0){n
+	if (strcmp(cmd_part,"resume")==0){
 	  cmd_part = strtok_r (NULL, delim2, &tmp2 );
 	  if ( cmd_part != NULL){
 	    const char * input_cmd_part = (const char *) cmd_part;
@@ -406,9 +406,9 @@ int main(int argc, char **argv) {
 	//itr through the_cmd getting all the flags and adding them to the string you have
 	//	char hold_all[100];
 	//	char * hold_all_ptr = &hold_all;
-	
+	  char * hold = NULL; 
 	if( the_cmd[1]!=NULL && (c2!=NULL))  {//checking if there are flags 
-	char* hold = my_concat (c2,the_cmd[1]); 
+	 hold = my_concat (c2,the_cmd[1]); 
 	
 	int go = 2;
 	while (the_cmd[go]!=NULL){
@@ -421,8 +421,10 @@ int main(int argc, char **argv) {
 	  }
 
 	//---we now have the path to the binary and then the flags of the command in hold
-	 the_cmd = tokenify (hold  );
+	if (hold != NULL){
 
+	 the_cmd = tokenify (hold  );
+	}
 	  //--------------------constructing input for execv 
 	}
 
