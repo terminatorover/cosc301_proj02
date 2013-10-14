@@ -30,7 +30,7 @@ void list_insert(char * str, pid_t  name, struct node ** head){
   newnode -> name = name ; 
 
   newnode -> cmd = str; 
-  printf("\n the path in the new node is: %s \n", newnode-> cmd);
+  //  printf("\n the path in the new node is: %s \n", newnode-> cmd);
   newnode -> next = NULL;
   
   newnode -> state = 1;
@@ -129,7 +129,7 @@ void print_selected ( pid_t the_name, struct node * head){
 void list_printer (  struct node * head ){
   struct node * tmp = head ; 
   while ( tmp != NULL){
-    printf("the line is : %s", tmp -> cmd) ; 
+
     tmp = tmp -> next ;
   }
 }
@@ -200,9 +200,9 @@ void freeArr(char** array){
 
 int main(int argc, char **argv) {
 
-   int status ;
 
-  printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or   'parallel', 'p'  \n");
+
+
   FILE *  prog = stdin;
 
   const char * delim1 = ";"; //For each command
@@ -243,17 +243,17 @@ int main(int argc, char **argv) {
        a_line =  fgets( a_line, 1024 , fp);      
      }
   }
-  //    list_printer( the_paths);
+      list_printer( the_paths);
   
   
   //^^^^^^^^^^^^^^^^^^^^ATTEMP TO READ IN SHELL-CONFIG^^^^^^^^^^^^^^^^
-
-
-  
+ 
+   printf("\nPrompt > \n "); 
+      
   //while (1) //We always read in a new line.
   while(enter)
      
-    {
+    { 
 
       char * comment = strchr(new_line, '#'); //deal with comment on line
       if(comment != NULL){
@@ -261,9 +261,6 @@ int main(int argc, char **argv) {
       } ;
       
       
-      //       printf ("\n command at this point  %d \n ", cmd);
-
-
       char * tmp  = NULL;
       char* cmd = strtok_r( new_line, delim1, &tmp);
 
@@ -273,7 +270,7 @@ int main(int argc, char **argv) {
 	// as new job come in, check the parse for exit or mode	
 
 	char* tmp2 = NULL;
-	char * tmp3 = NULL;
+	
 	/*
 // This block makes the space before the pound go away but this 
 //	   messes up our sleep because it cuts off the last argument (aka the numbe//r)
@@ -292,7 +289,7 @@ int main(int argc, char **argv) {
 	}
 
 	 if(strcmp(cmd_part, "mode") == 0)
-	  {  printf("\n ENTERED MODE \n");
+	  {  
 	    cmd_part = strtok_r( NULL, delim2, &tmp2);
 	    if ( cmd_part == NULL ){
 	        cmd = strtok_r( NULL, delim1, &tmp);
@@ -330,18 +327,18 @@ int main(int argc, char **argv) {
 	  list_print( head);
 	  for_exec = 0;
 	}
-	printf("\n THE CMD IS %s \n", cmd );
+
 	//**************************CALLING PAUSE 
 
 	
-	//        cmd_part = strtok_r (cmd, delim2, &tmp3 );
+
 	if (strcmp(cmd_part,"pause")==0){
 	  cmd_part = strtok_r (NULL, delim2, &tmp2);
 	  printf ("\n i expect a pid : %s\n", cmd_part);
 	  if ( cmd_part != NULL){
 
 	    const char * input_cmd_part = (const char *) cmd_part;
-	  int pid_for_pause = atoi(input_cmd_part);
+	    pid_t pid_for_pause =(pid_t) atoi(input_cmd_part);
 	  kill(pid_for_pause, SIGSTOP);
 	  pause_and_resume_selected ( pid_for_pause, head, 0);
 	  for_exec = 0; }
@@ -363,22 +360,15 @@ int main(int argc, char **argv) {
 
 
 
-	
-	
-
-
-
-
-
-
 	//++++++++++++++++++++++++++++++JOBS BLOCK++++++++++++++++++++++++++++++++++++++++++
 
      //!!!!!!!!!!!!!!!!!!!!!!!!!!!INPUT CMD CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	char * c2 = NULL;
 	struct stat statresult ;
+	if( for_exec ==1){
 	int rc = stat(the_cmd[0], &statresult);
 	if (rc >= 0){
-	  printf("\n THis command will be read just fine\n ");
+	  //	  printf("\n THis command will be read just fine\n ");
 	  for_exec = 1; 
 	}
 	else {//procced to combine the paths and the command to see if we can find the binary
@@ -386,22 +376,23 @@ int main(int argc, char **argv) {
 	  char * backslash = "//";
 	  char * path_name = path -> cmd ; 
 	  char * cmd_name = the_cmd[0];
-
+	  for_exec = 0 ; //--meaning we will get into the execv block only if fo_exec is equal to 1 and that only happens in the else staement right down below
 
 	  while( path != NULL){
 	    char * c1 = my_concat ( path_name , backslash);
 	    //	    printf ("\n result is: %s\n", c1);	    
 	     c2 = my_concat ( c1 ,cmd_name );
-	    printf ("\n result is: %s\n", c2);	    
+
 	    rc =  stat(c2 , &statresult);
         if (rc < 0){
-	  printf("\n we couldn't find it in: %s", c2);
+
 	  //MEANS the command given either doesn't include a path or isn't found in the path
-	}else {printf("\nWe found the file in: %s\n", c2); break ;}
+	}else {printf("\nWe found the file in: %s\n", c2); for_exec= 1; break ;}
 	    
 	path = path -> next ;}
+	  
 	
-
+	  
 	  //--------------------constructing input for execv 
 	//itr through the_cmd getting all the flags and adding them to the string you have
 	//	char hold_all[100];
@@ -427,7 +418,8 @@ int main(int argc, char **argv) {
 	}
 	  //--------------------constructing input for execv 
 	}
-
+	
+	}
      //!!!!!!!!!!!!!!!!!!!!!!!!!!!INPUT CMD CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
     //------------------------------EXECV BLOCK----------------------------
@@ -464,7 +456,7 @@ int main(int argc, char **argv) {
 
      if ( current_mode == 1 && for_exec == 1){
       //parallel 
-       printf("OH NO YOU DIDN'");
+       //       printf("OH NO YOU DIDN'");
         
       //          char * ptr = & the_cmd; ********************************Commment out ptr
 	  pid_t pid;
@@ -546,8 +538,9 @@ int main(int argc, char **argv) {
 
 //New line prep
      current_mode = mode ;
-     printf ("\n enter is: %d\n",enter);
+     //     printf ("\n enter is: %d\n",enter);
      if(enter){
+            printf("\nPrompt > \n ");
        new_line =  fgets( new_line, 1024 ,  prog);
      }
      //+++++++++++++++++++++checking if there are children finished +++++++++++++++++++++++++++
