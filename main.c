@@ -27,9 +27,12 @@ struct node {
 
 void list_insert(char * str, pid_t  name, struct node ** head){
   struct node * newnode = (struct node * ) malloc (sizeof( struct node));
-  newnode -> name = name ;
+  newnode -> name = name ; 
+
   newnode -> cmd = str; 
+    printf("\n just added a node by the name: %s \n", newnode -> cmd );
   newnode -> next = NULL;
+  
   newnode -> state = 1;
   struct node * tmp = * head ;
 
@@ -96,7 +99,15 @@ void print_selected ( pid_t the_name, struct node * head){
     printf ("\n Process %d (%s) completed \n", the_name, tmp -> cmd );
 
   }
-}  
+}
+
+void list_printer (  struct node * head ){
+  struct node * tmp = head ; 
+  while ( tmp != NULL){
+    printf("the line is : %s", tmp -> cmd) ; 
+    tmp = tmp -> next ;
+  }
+}
 
 void pause_and_resume_selected ( pid_t the_name, struct node * head, int check){
   struct node * tmp = head;
@@ -176,6 +187,10 @@ int main(int argc, char **argv) {
   int current_mode = mode;
   int enter = 1;
   struct node * head = NULL ;
+  struct node * the_paths = NULL;//****PATH RELATED 
+  int path_file = 1;
+  pid_t fake = 0; 
+
   int child_return_value;
   struct pollfd pfd[1];
   pfd -> fd = 0;
@@ -187,6 +202,29 @@ int main(int argc, char **argv) {
   int for_exec = 1; 
   char* new_line = (char * ) malloc(sizeof(char)*1024);
   new_line =  fgets( new_line, 1024 ,  prog);
+
+  //^^^^^^^^^^^^^^^^^^^^ATTEMP TO READ IN SHELL-CONFIG^^^^^^^^^^^^^^^^
+  
+  FILE *fp = fopen("shell-config","r");
+  if (fp == NULL){ printf("\n shell-config doesn't exist. Please enter the full direct  ory path to a program to exectue \n");
+    path_file = 0;
+  }else {
+    printf("\n--- SUpposed to work--- \n");
+    char * a_line = (char * ) malloc(sizeof(char)*1024);
+     a_line =  fgets(a_line, 1024 , fp);
+     while( a_line != NULL) {
+       printf ("a_line is : %s", a_line);
+       list_insert( a_line, fake, &the_paths  );
+       
+       a_line =  fgets( a_line, 1024 , fp);      
+     }
+  }
+  //    list_printer( the_paths);
+  
+  
+  //^^^^^^^^^^^^^^^^^^^^ATTEMP TO READ IN SHELL-CONFIG^^^^^^^^^^^^^^^^
+
+
   
   //while (1) //We always read in a new line.
   while(enter)
