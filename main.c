@@ -30,7 +30,7 @@ void list_insert(char * str, pid_t  name, struct node ** head){
   newnode -> name = name ; 
 
   newnode -> cmd = str; 
-    printf("\n just added a node by the name: %s \n", newnode -> cmd );
+
   newnode -> next = NULL;
   
   newnode -> state = 1;
@@ -73,6 +73,31 @@ void list_clear(struct node *list) {
     free(list);
     list = tmp;
   }
+}
+
+
+char * my_concat ( char * s1, char * s2)  {
+
+  char * new_str = (char *) malloc (sizeof(strlen(s1)+ strlen(s2)-1 ));
+  int count = 0;
+  int count2 =0 ;
+  int size_s1 = strlen(s1);
+  int size_s2 = strlen(s2);
+  while ( count < size_s1 -1){
+    new_str[count]=  s1[count];
+    count +=1;
+
+  }while ( count < ((size_s1 + size_s2 ) -1)){
+    new_str[count] = s2[count2];
+    count +=1;
+    count2 +=1;
+
+  }
+  new_str[count]='\0';
+
+
+  return new_str;
+
 }
 
 void list_print (struct node *head){
@@ -174,10 +199,9 @@ void freeArr(char** array){
 
 
 int main(int argc, char **argv) {
-   char * s = "I think my dad's gone crazy ";
-   char ** out_put = tokenify( s );
+
    int status ;
-  printf( "\n the string: %s \n", out_put[2] );
+
   printf("\n This is a prompt. Type 'exit' to get out! \n mode input is 'sequential' 's'  or   'parallel', 'p'  \n");
   FILE *  prog = stdin;
 
@@ -209,11 +233,11 @@ int main(int argc, char **argv) {
   if (fp == NULL){ printf("\n shell-config doesn't exist. Please enter the full direct  ory path to a program to exectue \n");
     path_file = 0;
   }else {
-    printf("\n--- SUpposed to work--- \n");
+
     char * a_line = (char * ) malloc(sizeof(char)*1024);
      a_line =  fgets(a_line, 1024 , fp);
      while( a_line != NULL) {
-       printf ("a_line is : %s", a_line);
+
        list_insert( a_line, fake, &the_paths  );
        
        a_line =  fgets( a_line, 1024 , fp);      
@@ -228,7 +252,7 @@ int main(int argc, char **argv) {
   
   //while (1) //We always read in a new line.
   while(enter)
-
+     
     {
 
       char * comment = strchr(new_line, '#'); //deal with comment on line
@@ -258,6 +282,7 @@ int main(int argc, char **argv) {
 	//*/
 	
 	char ** the_cmd = tokenify ( cmd );
+	
 	char * cmd_part =strtok_r(cmd, delim2, &tmp2); //Getting the command
  
 	if(cmd_part == NULL){ //cmd is only whitespace
@@ -291,7 +316,7 @@ int main(int argc, char **argv) {
 	    continue;
 	  }
 
-        //EXIT FORMATING QUEUE COMPLETIONS 
+        ///////////////////////////////////////EXIT FORMATING QUEUE COMPLETIONS\\\\\\\\\\\\\\\\
 
 	if(strcmp(cmd_part,"exit") == 0){
 	  enter = 0;
@@ -324,7 +349,7 @@ int main(int argc, char **argv) {
 	}  
 	//**************************CALLING RESUME
         
-	if (strcmp(cmd_part,"resume")==0){
+	if (strcmp(cmd_part,"resume")==0){n
 	  cmd_part = strtok_r (NULL, delim2, &tmp2 );
 	  if ( cmd_part != NULL){
 	    const char * input_cmd_part = (const char *) cmd_part;
@@ -347,6 +372,61 @@ int main(int argc, char **argv) {
 
 
 	//++++++++++++++++++++++++++++++JOBS BLOCK++++++++++++++++++++++++++++++++++++++++++
+
+     //!!!!!!!!!!!!!!!!!!!!!!!!!!!INPUT CMD CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	char * c2 = NULL;
+	struct stat statresult ;
+	int rc = stat(the_cmd[0], &statresult);
+	if (rc >= 0){
+	  printf("\n THis command will be read just fine\n ");
+	  for_exec = 1; 
+	}
+	else {//procced to combine the paths and the command to see if we can find the binary
+	  struct node * path = the_paths ;
+	  char * backslash = "//";
+	  char * path_name = path -> cmd ; 
+	  char * cmd_name = the_cmd[0];
+
+
+	  while( path != NULL){
+	    char * c1 = my_concat ( path_name , backslash);
+	    //	    printf ("\n result is: %s\n", c1);	    
+	     c2 = my_concat ( c1 ,cmd_name );
+	    printf ("\n result is: %s\n", c2);	    
+	    rc =  stat(c2 , &statresult);
+        if (rc < 0){
+	  printf("\n we couldn't find it in: %s", c2);
+	  //MEANS the command given either doesn't include a path or isn't found in the path
+	}else {printf("\nWe found the file in: %s\n", c2); break ;}
+	    
+	path = path -> next ;}
+	
+
+	  //--------------------constructing input for execv 
+	//itr through the_cmd getting all the flags and adding them to the string you have
+	//	char hold_all[100];
+	//	char * hold_all_ptr = &hold_all;
+	
+	if( the_cmd[1]!=NULL && (c2!=NULL))  {//checking if there are flags 
+	char* hold = my_concat (c2,the_cmd[1]); 
+	
+	int go = 2;
+	while (the_cmd[go]!=NULL){
+	  hold = my_concat (hold, the_cmd[go]);
+	  go += 1 ;
+	  
+	  
+	}
+	printf ("\nhold: %s\n", hold);
+	  }
+
+	//---we now have the path to the binary and then the flags of the command in hold
+	 the_cmd = tokenify (hold  );
+
+	  //--------------------constructing input for execv 
+	}
+
+     //!!!!!!!!!!!!!!!!!!!!!!!!!!!INPUT CMD CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
     //------------------------------EXECV BLOCK----------------------------
 	
@@ -412,7 +492,7 @@ int main(int argc, char **argv) {
      }
      freeArr(the_cmd);
      cmd = strtok_r( NULL, delim1, &tmp);
-      }
+	}
 //*******************************CHECKS FOR PROCESSES COMPLETED**********************8
       int rv = poll(&pfd, 1, 1000);
 
@@ -464,11 +544,12 @@ int main(int argc, char **argv) {
 
 //New line prep
      current_mode = mode ;
+     printf ("\n enter is: %d\n",enter);
      if(enter){
        new_line =  fgets( new_line, 1024 ,  prog);
      }
      //+++++++++++++++++++++checking if there are children finished +++++++++++++++++++++++++++
-    }
+      }
 
   struct node * ite = head;
       while ( ite !=  NULL){
@@ -480,6 +561,8 @@ int main(int argc, char **argv) {
 
 
       }
+
+    
     list_clear( head);
   
 
@@ -491,4 +574,5 @@ int main(int argc, char **argv) {
 
 
 
-}
+    }
+
